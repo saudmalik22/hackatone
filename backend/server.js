@@ -7,7 +7,7 @@ const connectDB = require("./config/DB");
 const todoRoutes = require('./routes/todoRoute');
 const authRoutes = require('./routes/authRoutes');
 const productRoutes = require('./routes/productRoutes');
-
+dotenv.config();
 //Middleware
 app.use(cors());
 app.use(bodyParser.urlencoded({ extended: false }))
@@ -15,7 +15,7 @@ app.use(bodyParser.json())
 const port = process.env.PORT || 8000;
 
 // initialize app
-dotenv.config();
+
 connectDB();
 
 // Routes
