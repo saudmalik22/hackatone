@@ -1,0 +1,15 @@
+{
+    "services": {
+      "backend": {
+        "path": "backend",
+        "build": "npm install",
+        "start": "npm start"
+      },
+      "frontend": {
+        "path": "frontend",
+        "build": "npm install && npm run build",  
+        "start": "npm run dev"                   
+      }
+    }
+  }
+  
