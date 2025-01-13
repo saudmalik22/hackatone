@@ -1,88 +1,79 @@
-const User = require('../models/userModel');
-const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+const User = require('../models/userModel');
 
 const register = async (req, res) => {
-    try {
-        if (!req.body?.password) {
-            res.json({
-                data: [],
-                status: "error",
-                error: "password is required"
-            })
-        }
-        var hashedPassword = bcrypt.hashSync(req.body?.password, 8);
+  const { name, password, email } = req.body;
 
-        let newUser = new User({
-            name: req.body?.name,
-            email: req.body?.email,
-            password: hashedPassword,
-            address: req.body?.address,
-        })
+  try {
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newUser = new User({ name, password: hashedPassword, email });
+    await newUser.save();
 
-        const addUser = await newUser.save();
-        res.json(
-            {
-                data: addUser,
-                status: "success",
-            }
-        )
-    } catch (error) {
-        res.json(
-            {
-                data: [],
-                status: "error",
-                error: "error"
-            }
-        )
-    }
-}
+    const token = jwt.sign({ userId: newUser._id }, process.env.SECRET_KEY);
+    console.log('token:', token);
+    res.status(201).json({
+      token,
+      user: {
+        id: newUser._id,
+        name: newUser.name,
+        email: newUser.email,
+      },
+      status: "success",
+    });
+  } catch (error) {
+    res.status(500).json({
+      data: [],
+      status: "error",
+      error: error.message,
+    });
+  }
+};
 
 const login = async (req, res) => {
-    try {
-        if(!req.body?.email || !req.body?.password){
-            res.json({
-                data:[],
-                status:"error",
-                error:"email and password are required"
-            })
-        }
-        const userFound = await User.findOne({email:req.body?.email});
-        if(!userFound){
-            res.json({
-                data:[],
-                status:"error",
-                error:"user not found"
-            })
-        }
+  const { email, password } = req.body;
 
-        const passwordIsValid =bcrypt.compareSync(req.body?.password, userFound.password);
-        if(!passwordIsValid){
-            res.json({
-                data:[],
-                status:"error",
-                error:"password is invalid"
-            })
-        }
-
-        const secretKey =process.env.SECRET_KEY;
-        var token = jwt.sign({_id:userFound._id,}, secretKey);
-        res.json({
-            data: {
-                token:token,
-            },
-            status: "success"
-        })
-    } catch (error) {
-        res.json({
-            data:[],
-            status:"error",
-            error:"error"
-        })
+  try {
+    const userFound = await User.findOne({ email });
+    if (!userFound) {
+      return res.status(400).json({
+        data: [],
+        status: "error",
+        error: "Invalid email or password",
+      });
     }
-}
+
+    const isMatch = await bcrypt.compare(password, userFound.password);
+    if (!isMatch) {
+      return res.status(400).json({
+        data: [],
+        status: "error",
+        error: "Invalid email or password",
+      });
+    }
+
+    const token = jwt.sign({ userId: userFound._id }, process.env.SECRET_KEY);
+    res.status(200).json({
+      token,
+      user: {
+        id: userFound._id,
+        username: userFound.username,
+        email: userFound.email,
+        name: userFound.name,
+        address: userFound.address,
+      },
+      status: "success",
+    });
+  } catch (error) {
+    res.status(500).json({
+      data: [],
+      status: "error",
+      error: error.message,
+    });
+  }
+};
 
 module.exports = {
-    register,
-    login
-}
+  register,
+  login,
+};

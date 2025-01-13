@@ -1,10 +1,12 @@
-import { Routing } from "./components/routing/Routing"
+import { BrowserRouter } from "react-router-dom"
+import { Routing } from "./pages/routing/Routing"
 
 function App() {
   return (
     <>
+    <BrowserRouter>
     <Routing/>
-    
+    </BrowserRouter>
     </>
   )
 }

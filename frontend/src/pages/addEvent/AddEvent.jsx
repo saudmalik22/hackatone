@@ -1,42 +1,88 @@
-import  { useState } from "react";
+import { useState } from "react";
 import { useDispatch } from "react-redux";
 import { addEvent } from "../../store/slices/eventSlice";
+import { useSelector } from "react-redux";
+import { FaCamera } from "react-icons/fa"; // Import camera icon
+import axios from "axios";
 export default function AddEvent() {
-  const [id, setId] = useState(30);
+  const userId = useSelector((state) => state.user.user.id);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [date, setDate] = useState("");
   const [location, setLocation] = useState("");
   const [category, setCategory] = useState("");
   const [visibility, setVisibility] = useState("");
-const dispatch = useDispatch();
+  const [image, setImage] = useState(null); 
+  const [preview, setPreview] = useState(null);
+  
+
+  const dispatch = useDispatch();
+
+   
+
+  const handleFileChange = async(e) => {
+    const file = e.target.files[0];
+    setImage(file);
+    setPreview(URL.createObjectURL(file)); 
+    try{
+        const formData = new FormData();
+        formData.append("file",file);
+        formData.append("upload_preset","event_management");
+        formData.append("cloud_name","dbod2iefp");
+        const cloudinaryResponse = await axios.post(
+          "https://api.cloudinary.com/v1_1/dbod2iefp/image/upload",
+          formData,  
+          {
+            headers: { "Content-Type": "multipart/form-data" },
+          }
+
+        );
+        const imageUrl = cloudinaryResponse.data.secure_url;
+        console.log("image uploaded successfully", imageUrl);
+         setImage(imageUrl);
+    }catch(error){
+      console.error("Error:", error);
+    }
+
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     try {
       const eventData = {
-        id:id,
         title,
         description,
         date,
         location,
         category,
         visibility,
+        image, 
+        created_by: userId,
         created_at: new Date().toISOString(),
+      };
 
-      }
       console.log("Event Data:", eventData);
+
+      // Dispatch the event data to Redux
       dispatch(addEvent(eventData));
-      setId(prevId => prevId + 1);
+
+      // Reset form fields
+      setTitle("");
+      setDescription("");
+      setDate("");
+      setLocation("");
+      setCategory("");
+      setVisibility("");
+      setImage(null);
+      setPreview(null);
     } catch (error) {
-        console.error("Error:", error);
-    };
-      
-   
+      console.error("Error:", error);
+    }
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-blue-100 to-blue-200">
-      <div className="w-full max-w-md bg-white shadow-xl rounded-lg p-8">
+    <div className="flex justify-center items-center min-h-screen bg-gradient-to-br ">
+      <div className="w-full max-w-md bg-white shadow-xl rounded-lg p-8 overflow-y-auto" style={{ height: '80vh' }}>
         <h1 className="text-3xl font-bold text-blue-600 text-center">Add Event</h1>
         <p className="text-gray-600 text-center mt-2">
           Provide the event details to create a new event.
@@ -44,10 +90,7 @@ const dispatch = useDispatch();
         <form className="mt-6" onSubmit={handleSubmit}>
           {/* Title Field */}
           <div className="mb-6">
-            <label
-              htmlFor="title"
-              className="block text-gray-700 text-sm font-semibold mb-2"
-            >
+            <label htmlFor="title" className="block text-gray-700 text-sm font-semibold mb-2">
               Title
             </label>
             <input
@@ -62,10 +105,7 @@ const dispatch = useDispatch();
 
           {/* Description Field */}
           <div className="mb-6">
-            <label
-              htmlFor="description"
-              className="block text-gray-700 text-sm font-semibold mb-2"
-            >
+            <label htmlFor="description" className="block text-gray-700 text-sm font-semibold mb-2">
               Description
             </label>
             <textarea
@@ -80,10 +120,7 @@ const dispatch = useDispatch();
           {/* Date and Location Fields */}
           <div className="grid grid-cols-2 gap-4 mb-6">
             <div>
-              <label
-                htmlFor="date"
-                className="block text-gray-700 text-sm font-semibold mb-2"
-              >
+              <label htmlFor="date" className="block text-gray-700 text-sm font-semibold mb-2">
                 Date
               </label>
               <input
@@ -95,10 +132,7 @@ const dispatch = useDispatch();
               />
             </div>
             <div>
-              <label
-                htmlFor="location"
-                className="block text-gray-700 text-sm font-semibold mb-2"
-              >
+              <label htmlFor="location" className="block text-gray-700 text-sm font-semibold mb-2">
                 Location
               </label>
               <input
@@ -115,10 +149,7 @@ const dispatch = useDispatch();
           {/* Category and Visibility Fields */}
           <div className="grid grid-cols-2 gap-4 mb-6">
             <div>
-              <label
-                htmlFor="category"
-                className="block text-gray-700 text-sm font-semibold mb-2"
-              >
+              <label htmlFor="category" className="block text-gray-700 text-sm font-semibold mb-2">
                 Category
               </label>
               <select
@@ -135,10 +166,7 @@ const dispatch = useDispatch();
               </select>
             </div>
             <div>
-              <label
-                htmlFor="visibility"
-                className="block text-gray-700 text-sm font-semibold mb-2"
-              >
+              <label htmlFor="visibility" className="block text-gray-700 text-sm font-semibold mb-2">
                 Visibility
               </label>
               <select
@@ -151,6 +179,36 @@ const dispatch = useDispatch();
                 <option value="public">public</option>
                 <option value="private">private</option>
               </select>
+            </div>
+          </div>
+
+          {/* Image Upload */}
+          <div className="mb-6">
+            <label htmlFor="image" className="block text-gray-700 text-sm font-semibold mb-2">
+              Upload Image
+            </label>
+            <div className="flex items-center gap-4">
+              <label
+                htmlFor="image"
+                className="w-24 h-24 border border-gray-300 rounded-lg flex items-center justify-center text-gray-500 cursor-pointer hover:shadow-md"
+              >
+                {preview ? (
+                  <img
+                    src={preview}
+                    alt="Preview"
+                    className="w-full h-full object-cover rounded-lg"
+                  />
+                ) : (
+                  <FaCamera size={30} />
+                )}
+              </label>
+              <input
+                type="file"
+                id="image"
+                onChange={handleFileChange}
+                accept="image/*"
+                className="hidden"
+              />
             </div>
           </div>
 

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useDispatch } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { login } from '../../store/slices/userSlice';
 import pic from '../../assets/login.png';
 
@@ -72,7 +72,7 @@ export const Login = () => {
                     </div>
                     <div className="flex justify-center items-center mt-4 text-m text-gray-700">
                         <p className="mr-2 items-center">Register an Account?</p>
-                        <a href="#" className="text-blue-500 hover:underline">Signup</a>
+                       <Link to={"/signup"}> <a href="#" className="text-blue-500 hover:underline">Signup</a></Link>
                     </div>
                 </div>
             </div>

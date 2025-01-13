@@ -4,9 +4,9 @@ const cors = require('cors')
 const dotenv = require("dotenv");
 const bodyParser = require("body-parser");
 const connectDB = require("./config/DB");
-const todoRoutes = require('./routes/todoRoute');
+const eventRouter = require('./routes/eventRoutes');
 const authRoutes = require('./routes/authRoutes');
-const productRoutes = require('./routes/productRoutes');
+const rsvpRouter= require('./routes/rsvpRoutes');
 dotenv.config();
 //Middleware
 app.use(cors());
@@ -19,9 +19,10 @@ const port = process.env.PORT || 8000;
 connectDB();
 
 // Routes
-app.use("/todos",todoRoutes);
+app.use("/events",eventRouter);
 app.use("/auth",authRoutes);
-app.use("/products",productRoutes);
+app.use("/rsvp", rsvpRouter);
+
 
 
 app.listen(port, () => {
